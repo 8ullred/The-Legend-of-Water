@@ -3,74 +3,68 @@ Text Based RPG Thing
 Ronald + Bill
 """
 
-from time import sleep
+from os import listdir
+from characters import *
+from actions import *
 
 
-def menu():
-    while True:
-        print('1 - Battle\n'
-              '2 - Town\n'
-              '3 - Stats\n'
-              '4 - Bag\n'
-              r"'Q' - Quit")
+def main():
+    version = 0.1
+
+    # prints some important information about the game
+    print(f'The Legend of the Filtered Water v{version}\n'
+          'by: Bill & Ronald')
+    sleep(2)
+
+    print('\n' * 0)
+
+    # looks for a save file
+    save_files = listdir('saves')
+
+    # checks if there's a save file
+    if save_files:
+        print('Saves: ')
+        [print(f'{i+1}. {save}') for i, save in enumerate(save_files)]
 
         print()
-        cmd = input('> ')
+        # TODO: Error Trapping
+        selection = int(input('Select save file: '))
 
-        match cmd.lower():
-            case '1':
-                pass
-            case '2':
-                pass
-            case '3':
-                open_stats(10, 5, 100)
-            case '4':
-                open_bag(23, 7, 'aaa')
-            case 'q':
-                print("Thank you!")
-                return
-            case 'dev':
-                pass
-            case _:
-                print('Invalid Command - Please Retry')
+        with open(save_files[selection - 1], 'r') as save:
+            user = save.read()
 
+        print('Welcome Back!')
 
-def open_stats(*a):
-    print('Stats:')
-    for item in a:
-        print(f'\t{item=}')
+    else:
+        # TODO: add sleeps for time spacing
+        # TODO: finish tutorial
 
-    print()
-    _ = input('Hit enter to return to the previous menu.')
-    return
+        # tutorial to game
+        # TODO: Error Trapping
+        do_speedup = input('Would you like to speed up the intro (y/n)? ').lower()
 
+        if do_speedup == 'y':
+            read_story('startIntro', 'Introduction: ', 0.001)
+        else:
+            read_story('startIntro', 'Introduction: ')
 
-def open_bag(*a):
-    print('Balance:\n'
-          f'\tCurrency: {_currency}\n'
-          f'\tSpecial Currency: {_special_currency}')
+        # TODO: Error Trapping
+        user = Player(input(' '))
 
-    print('\nItems: ')
-    print('\t', *a)
+        # TODO: print tournament bracket
 
-    print()
-    _ = input('Hit enter to return to the previous menu.')
-    return
+        read_story('startBattle1')
+        print()
+
+        # TODO: tutorial fights
+        reeco = Enemy('Reeco')
+        start_fight(user, reeco, True)
+
+        # print()
+        # print('Welcome to The Legend of Water')
+
+    # menu(user)
 
 
-# Setting the base stats for the player
-_atk, _hp, _def, _crit_rate, _crit_damage, _currency, _special_currency, _speed =\
-    10, 100, 0, 5, 50, 0, 100, 5
-
-# plays the tutorial if the game is being opened for the first time
-is_tutorial_finished = False
-
-if not is_tutorial_finished:
-    print('this is an introduction be introduced')
-    sleep(2)
-    print('Welcome to [City Name]')
-    is_tutorial_finished = True
-else:
-    print('Welcome Back!')
-
-menu()
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,154 @@
+--scene: startIntro
+You come from one of five towns,
+ all of which are intent on retrieving the Super Legendary Premium Filtered Water.
+
+The water all the towns have is simply just regular Tap Water,
+ and it doesn’t have any flavor to it.
+
+Neither does the Super Legendary Premium Filtered Water,
+ to be fair,
+ but it’s the status that matters.
+
+You simply need it.
+
+--lineBreak
+Filled with desire to obtain the Super Legendary Premium Filtered Water,
+ you set out on an arduous journey to reach the Palace of Water,
+
+where the Super Legendary Premium Filtered Water is kept in abundance,
+ although it can only be taken by the most worthy.
+
+--lineBreak
+June 7th, the most auspicious day in this world to reach the Palace of Water,
+ was rapidly approaching.
+
+You made it your goal to come out on top,
+ and in the process,
+ obtain the Super Legendary Premium Filtered Water that the legends had spoken of.
+
+All of your ancestors had failed,
+ and now it was up to you to obtain it.
+
+--lineBreak
+Drinking a nice good cup of regular Tap Water,
+ you sign up for the town tournament as:
+--end
+
+--scene: startBattle1
+Looking at the tournament bracket,
+ you notice your first opponent’s name,
+ Reeco. The name of
+ a good childhood friend.
+--end
+
+--scene: endBattle1
+“Wow,
+ [username],
+ you’re good,”
+ Reeco chokes out.
+ “I underestimated how far you’ve come since we were kids!”
+
+--lineBreak
+“Thanks,
+ Reeco,”
+ you said solemnly.
+ “You were great,
+ too.”
+
+--lineBreak
+“Just don’t forget us,
+ okay?
+ I believe in you.
+ You can get the Super Legendary Premium Filtered Water!”
+
+He exclaims,
+ before passing out.
+
+--lineBreak
+After defeating your friend,
+ you begin to prepare for your next fight,
+ against someone who called themselves Kasra.
+
+You’ve never heard of them, but you assumed the worst.
+
+While entering the arena,
+ you drink some more Tap Water,
+ before drawing your sword.
+--end
+
+--scene: endBattle2
+After knocking the weapon out of Kasra’s hand,
+ he walks away without saying a word.
+
+Finally, the last battle had come.
+ It was against the legendary swordsman Bebald themselves.
+
+As you stepped into the arena,
+ however, all was silent.
+ After about 3 minutes of awkward silence,
+
+the announcer stood up,
+ and cleared his throat.
+
+--lineBreak
+“It appears that Bebald has not shown up to the tournament,
+ so by default,
+ [username],
+ is the winner!”
+
+--lineBreak
+The crowd erupted with cheers,
+ and you walked away with your heart light.
+
+You could finally journey off in search of the Super Legendary Premium Filtered Water,
+ your childhood dream.
+
+--lineBreak
+Before setting off,
+ the village elders bestowed upon you five gifts.
+
+The first,
+ a Bronze Sword x1 that was far superior to your training sword.
+
+The second,
+ a bottle of Filtered Water x1.
+
+The third,
+ a nice bag to store anything you came across in your quest.
+
+The Fourth,
+ a bag that contained fifty currency,
+ and a hundred premium currency.
+
+--lineBreak
+“We don’t know what these are, we don’t know what they do,
+ but they’re probably important,”
+
+the village elders had explained. Well, whatever.
+ Might as well take it along.
+
+And finally,
+ for the fifth and final gift,
+ a bundle of Holy Water x5 for emergencies.
+
+--lineBreak
+Thanking the village elders, you set off on your journey,
+ before hearing your name being called.
+
+--lineBreak
+“Hey, {username}! {username}!” You hear from behind. You turn around,
+ and you see Reeco running from behind,
+
+panting as he tries to catch up to you.
+
+--lineBreak
+“Hey,” he wheezed out, upon catching up to you. “Take this Childhood Photo x1.
+ It might bring you luck on your journey.”
+
+--lineBreak
+“Reeco... thank you, I’ll cherish this.” Reeco nods, and you turn away,
+ stashing the photo as you go.
+
+--lineBreak
+It’s time to find that Super Legendary Premium Filtered Water!
+--end
