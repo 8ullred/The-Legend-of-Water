@@ -1,11 +1,6 @@
 from random import getrandbits
 from time import sleep
-
-# TODO: add more to this, more functionality, stats, etc.
-ENEMY_TYPES = ['tutorial1', 'tutorial2']
-WEAPONS = []
-ARMOR = []
-ITEMS = []
+from constants import Colors, Enemies
 
 
 # TODO: finish player class
@@ -54,7 +49,7 @@ class Enemy:
 
         self.max_hp = 10.0
         self.hp = self.max_hp
-        self.atk = 1000.0
+        self.atk = 1.0
         self.defense = 0
         self.speed = 0
 
@@ -62,6 +57,8 @@ class Enemy:
 
     def attack(self):
         pass
+
+    # TODO: enemy drops
 
 
 def menu(player):
@@ -127,13 +124,14 @@ def open_bag(player: Player, *items):
 
 # TODO: combat mechanics
 
-def attack(attacker, defender):
+def attack(attacker: Player | Enemy, defender: Player | Enemy):
     # TODO: add sleeps for time spacing
 
     damage_dealt = attacker.atk - (defender.defense * 0.5)
 
     if defender.is_defending:
-        print(f'{defender.name} blocked!')
+        print(f'{defender.name} blocked!\n')
+        sleep(1.5)
 
         damage_dealt *= 0.5
 
@@ -142,25 +140,30 @@ def attack(attacker, defender):
 
         else:
             defender.hp = defender.hp - damage_dealt
-            print(f'{defender.name} blocked for {attacker.atk - damage_dealt} damage and '
-                  f'took {damage_dealt} damage instead!')
-
-            print(f'{defender.name} has {defender.hp}HP remaining!')
+            print(f'{defender.name} blocked for {attacker.atk - damage_dealt} damage ')
+            sleep(2)
+            print(f'{defender.name} took {damage_dealt} damage instead!')
+            sleep(2)
+            print(f'{defender.name} has {defender.hp} HP remaining!')
 
         defender.is_defending = False
 
     else:
         if damage_dealt < 0:
-            print(f"{defender.name}'s defense was too strong! {attacker.name}'s attack did nothing!")
+            print(f"{defender.name}'s defense was too strong! ", end='')
+            sleep(1.5)
+            print(f"{attacker.name}'s attack did nothing!")
 
         else:
             defender.hp = defender.hp - damage_dealt
-            print(f'{attacker.name} landed a hit that did {damage_dealt} damage! '
-                  f'{defender.name} has {defender.hp}HP remaining!')
+            print(f'{attacker.name} landed a hit that did {damage_dealt} damage! ', end='')
+            sleep(1.5)
+            print(f'{defender.name} has {defender.hp} HP remaining!')
 
 
-def defend(defender):
-    print(f'{defender.name} is blocking!')
+def defend(defender: Player):
+    print(f'{defender.name} is going to block!')
+    sleep(1.5)
 
     defender.is_defending = True
 
@@ -175,6 +178,12 @@ def use_items():
 def start_fight(player: Player, enemy: Enemy, is_tutorial: bool = False) -> bool:
     # TODO: add sleeps for time spacing
 
+    def print_health():
+        print(f'You: {player.hp}/{player.max_hp} HP')
+        print(f'{enemy.name}: {enemy.hp}/{enemy.max_hp} HP')
+        print()
+        sleep(1.5)
+
     if is_tutorial:
         if player.speed > enemy.speed:
             player_turn = True
@@ -183,26 +192,26 @@ def start_fight(player: Player, enemy: Enemy, is_tutorial: bool = False) -> bool
         else:
             player_turn = bool(getrandbits(1))
 
-        # TODO: make this look better
-        print(f'Starting fight between {player.name} and {enemy.name}')
-
-        print(f'You: {player.hp}/{player.max_hp} HP')
-        print(f'{enemy.name}: {enemy.hp}/{enemy.max_hp} HP')
+        print(f'Starting fight between {player.name} and {enemy.name}\n')
+        sleep(1.5)
 
         while True:
             if player_turn:
-                print('Your Turn\n')
-                sleep(1)
+                print_health()
 
-                print('\tActions:\n'
-                      '\t\t1. Attack\n'
-                      '\t\t2. Defend\n'
-                      '\t\t3. Use Items (WIP)')
+                print(f'{Colors.UNDERLINE}Your Turn{Colors.END}')
+                sleep(2)
+
+                print('Actions:\n'
+                      '\t1 Attack\n'
+                      '\t2 Defend\n'
+                      '\t3 Use Items (WIP)')
+                sleep(0.5)
 
                 # TODO: Error Trapping
                 action = int(input('Enter action: '))
 
-                sleep(1)
+                sleep(2)
                 match action:
                     case 1:
                         attack(player, enemy)
@@ -211,32 +220,24 @@ def start_fight(player: Player, enemy: Enemy, is_tutorial: bool = False) -> bool
                     case 3:
                         pass
                         # TODO: use items
-
-                if enemy.hp <= 0:
-                    print('Congratulations! You Won!')
-                    return True
-
-                if player.hp <= 0:
-                    print('You lost')
-                    return False
-
-                player_turn = not player_turn
+                sleep(1)
 
             else:
-                print(f"{enemy.name}'s Turn")
+                print(f"{Colors.UNDERLINE}{enemy.name}'s Turn{Colors.END}")
                 sleep(1)
 
                 attack(enemy, player)
+                sleep(1)
 
-                if enemy.hp <= 0:
-                    print('Congratulations! You Won!')
-                    return True
+            if enemy.hp <= 0:
+                print(f'Congratulations! You Defeated {enemy.name}!')
+                return True
 
-                if player.hp <= 0:
-                    print('You lost')
-                    return False
+            if player.hp <= 0:
+                print('You lost')
+                return False
 
-                player_turn = not player_turn
+            player_turn = not player_turn
 
 # TODO: shop menu
 # TODO: map zones
