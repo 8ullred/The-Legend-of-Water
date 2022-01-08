@@ -1,15 +1,16 @@
-from random import getrandbits
+from random import getrandbits, randint
 from time import sleep
-from constants import Colors, Enemies
+from constants import Colors
+from os import rename
 
 
-# TODO: finish player class
+# TODO: finish player class ***
 class Player:
     def __init__(self, name: str):
         self.name = name
 
         # setting base stats for player
-        self.atk = 5.0
+        self.atk = 999.0
         self.max_hp = 20.0
         self.hp = self.max_hp
         self.defense = 0
@@ -19,59 +20,131 @@ class Player:
 
         # setting statuses for player
         self.is_defending = False
+        self.location = 'Dorma'
 
         # setting player balance
-        self.currency, self.special_currency = 0, 0
-
-    def update_balance(self, currency=0, special_currency=0, add=True):
-        if not add:
-            currency *= -1
-            special_currency *= -1
-
-        self.currency += currency
-        self.special_currency += special_currency
+        self.gold, self.primoshard = 0, 0
 
     def balance(self):
-        return ('currency', self.currency), ('special_currency', self.special_currency)
+        return ('gold', self.gold), ('primoshard', self.primoshard)
 
-    def stats(self):
-        return self.atk, self.hp, self.defense, self.crit_rate, self.crit_damage, self.speed
+    def get_stats(self) -> tuple[float, tuple[float, float], int, int, int, int]:
+        return self.atk, (self.hp, self.max_hp), self.defense, self.crit_rate, self.crit_damage, self.speed
 
-    # TODO: add item equipping
-    # TODO: add inventory
+    def __heal__(self):
+        self.hp = self.max_hp
+    # TODO: add item equipping **
+    # TODO: add inventory *
 
 
-# TODO: Enemy class
+# TODO: Enemy class ***
 class Enemy:
-    # TODO: being able to have different enemy types with individual stats
-    def __init__(self, name):
+    def __init__(self, name: str, enemy: dict):
         self.name = name
 
-        self.max_hp = 10.0
+        self.max_hp = enemy['max_hp']
         self.hp = self.max_hp
-        self.atk = 1.0
-        self.defense = 0
-        self.speed = 0
+        self.atk = enemy['atk']
+        self.defense = enemy['defense']
+        self.speed = enemy['speed']
+        self.crit_rate = enemy['crit_rate']
+        self.crit_damage = enemy['crit_damage']
 
         self.is_defending = False
 
-    def attack(self):
-        pass
-
-    # TODO: enemy drops
+    # TODO: enemy drops **
 
 
-def menu(player):
+class NoPlayerName(Exception):
+    pass
+
+
+def read_story(scene: str, header: str = None, reading_rate: float = 0.08, player: Player = None):
+    start_reading = False
+
+    if header is not None:
+        for char in header:
+            print(char, end='')
+            sleep(reading_rate * 8) if char == ':' else sleep(reading_rate)
+
+        else:
+            print()
+
+    try:
+        with open('lore.txt', 'r') as file:
+            for line in file:
+                if line != '\n':
+                    line = line.strip('\n')
+
+                if start_reading:
+                    if line == '--end':
+                        return
+                    elif line == '--lineBreak':
+                        print()
+                    else:
+                        check_for_code, pattern_matched = False, False
+
+                        for char in line:
+                            match char:
+                                case ',' | '.':
+                                    sleep_time = reading_rate * 8
+                                case ':':
+                                    sleep_time = reading_rate * 20
+                                case '–':
+                                    check_for_code = True
+                                    continue
+                                case _:
+                                    sleep_time = reading_rate
+
+                            if check_for_code:
+                                match char:
+                                    case '1':
+                                        char = Colors.COMMON
+                                    case '2':
+                                        char = Colors.UNCOMMON
+                                    case '3':
+                                        char = Colors.RARE
+                                    case '4':
+                                        char = Colors.EPIC
+                                    case '5':
+                                        char = Colors.LEGENDARY_B
+                                    case 'W':
+                                        char = Colors.WATER
+                                    case 'E':
+                                        char = Colors.END
+                                    case 'P':
+                                        if player is None:
+                                            raise NoPlayerName
+                                        else:
+                                            char = player.name
+
+                                sleep_time, check_for_code = 0, False
+
+                            print(char, end='')
+                            sleep(sleep_time)
+
+                else:
+                    if line.split() == ['--scene:', scene]:
+                        start_reading = True
+        print('No Scene Found')
+
+    except NoPlayerName:
+        print('No Player Was Passed - This Scene Requires the Name of a Player')
+
+
+def menu(player: Player, save: str):
+    print(f'You are currently in {player.location}')
+
     while True:
-        print('1 - Battle\n'
-              '2 - Town\n'
-              '3 - Stats\n'
-              '4 - Bag\n'
-              '5 - Save\n'
-              r"'Q' - Quit")
+        print(f'{Colors.fill(Colors.OPTION, "1")} - Map\n'
+              f'{Colors.fill(Colors.OPTION, "2")} - Town\n'
+              f'{Colors.fill(Colors.OPTION, "3")} - Stats\n'
+              f'{Colors.fill(Colors.OPTION, "4")} - Bag\n'
+              f'{Colors.fill(Colors.OPTION, "5")} - Save\n'
+              f'{Colors.fill(Colors.OPTION, "Q")} - Quit')
 
         print()
-        # TODO: Error Trapping
+        # TODO: Error Trapping ***
         cmd = input('> ').lower()
 
         match cmd:
@@ -84,10 +157,12 @@ def menu(player):
             case '4':
                 open_bag(player)
             case '5':
-                # TODO: save functionality
-                pass
+                rename(f'saves/{save}', f'saves/{player.name}.txt')
             case 'q':
-                print("Thank you!")
+                print("Thank You For Playing!")
+                rename(f'saves/{save}', f'saves/{player.name}.txt')
+                print('Your Progress Has Been Saved.')
+
                 return
             case 'dev':
                 pass
@@ -95,14 +170,16 @@ def menu(player):
                 print('Invalid Command - Please Retry')
 
 
-# TODO:...
+# TODO: map zones ****
+
+# TODO: shop menu ***
 
 
 def open_stats(player: Player):
     print('Stats:')
-    # TODO: display all stats
-    for item in player.stats():
-        # TODO: show current hp
+    # TODO: display all stats **
+    for item in player.get_stats():
+        # TODO: show current hp *
         print(f'\t{item = }')
 
     print()
@@ -122,61 +199,9 @@ def open_bag(player: Player, *items):
     return
 
 
-# TODO: combat mechanics
-
-def attack(attacker: Player | Enemy, defender: Player | Enemy):
-    # TODO: add sleeps for time spacing
-
-    damage_dealt = attacker.atk - (defender.defense * 0.5)
-
-    if defender.is_defending:
-        print(f'{defender.name} blocked!\n')
-        sleep(1.5)
-
-        damage_dealt *= 0.5
-
-        if damage_dealt <= 0:
-            print(f"{attacker.name}'s attack did no damage!")
-
-        else:
-            defender.hp = defender.hp - damage_dealt
-            print(f'{defender.name} blocked for {attacker.atk - damage_dealt} damage ')
-            sleep(2)
-            print(f'{defender.name} took {damage_dealt} damage instead!')
-            sleep(2)
-            print(f'{defender.name} has {defender.hp} HP remaining!')
-
-        defender.is_defending = False
-
-    else:
-        if damage_dealt < 0:
-            print(f"{defender.name}'s defense was too strong! ", end='')
-            sleep(1.5)
-            print(f"{attacker.name}'s attack did nothing!")
-
-        else:
-            defender.hp = defender.hp - damage_dealt
-            print(f'{attacker.name} landed a hit that did {damage_dealt} damage! ', end='')
-            sleep(1.5)
-            print(f'{defender.name} has {defender.hp} HP remaining!')
-
-
-def defend(defender: Player):
-    print(f'{defender.name} is going to block!')
-    sleep(1.5)
-
-    defender.is_defending = True
-
-# TODO: use item in combat
-# TODO: run combat feature
-
-
-def use_items():
-    pass
-
-
+# TODO: combat mechanics ***
+# TODO: different coloured hit for crits *
 def start_fight(player: Player, enemy: Enemy, is_tutorial: bool = False) -> bool:
-    # TODO: add sleeps for time spacing
 
     def print_health():
         print(f'You: {player.hp}/{player.max_hp} HP')
@@ -184,60 +209,158 @@ def start_fight(player: Player, enemy: Enemy, is_tutorial: bool = False) -> bool
         print()
         sleep(1.5)
 
-    if is_tutorial:
-        if player.speed > enemy.speed:
-            player_turn = True
-        elif enemy.speed > player.speed:
-            player_turn = False
-        else:
-            player_turn = bool(getrandbits(1))
+    print(f'Starting fight between {player.name} and {enemy.name}\n')
+    sleep(0.5)
 
-        print(f'Starting fight between {player.name} and {enemy.name}\n')
-        sleep(1.5)
+    if player.speed > enemy.speed:
+        print(f"You go first! Your speed is {player.speed}, is faster than {enemy.name}'s speed of {enemy.speed}")
+        player_turn = True
 
-        while True:
-            if player_turn:
-                print_health()
+    elif enemy.speed > player.speed:
+        print("The opponent goes first! "
+              f"Your speed of {player.speed} is slower than {enemy.name}'s speed of {enemy.speed}")
+        player_turn = False
 
-                print(f'{Colors.UNDERLINE}Your Turn{Colors.END}')
-                sleep(2)
+    else:
+        print(f"{player.name}'s speed is the same as {enemy.name}'s speed. ", end='')
+        sleep(0.5)
+        print(f'By the randomness of surprise, ', end='')
+        player_turn = bool(getrandbits(1))
 
+        print(f'{player.name} is going first') if player_turn else print(f'{enemy.name} is going first')
+
+    print()
+    sleep(1.5)
+
+    while True:
+        if player_turn:
+            print_health()
+
+            print(f'{Colors.UNDERLINE}Your Turn{Colors.END}')
+            sleep(0.65)
+
+            if is_tutorial:
+                while True:
+                    print('Actions:\n'
+                          f'\t{Colors.OPTION}1{Colors.END} Attack\n'
+                          f'\t{Colors.OPTION}2{Colors.END} Defend')
+                    sleep(0.5)
+
+                    # TODO: Error Trapping
+                    try:
+                        action = int(input('Enter action: '))
+                        if action not in [1, 2]:
+                            print("Please Enter 1 or 2")
+                        else:
+                            break
+                    except ValueError:
+                        print("Invalid Input - Please Retry")
+
+            else:
                 print('Actions:\n'
-                      '\t1 Attack\n'
-                      '\t2 Defend\n'
-                      '\t3 Use Items (WIP)')
+                      f'\t{Colors.OPTION}1{Colors.END} Attack\n'
+                      f'\t{Colors.OPTION}2{Colors.END} Defend\n'
+                      f'\t{Colors.OPTION}3{Colors.END} Use Item\n'
+                      f'\t{Colors.OPTION}4{Colors.END} Run')
                 sleep(0.5)
 
                 # TODO: Error Trapping
                 action = int(input('Enter action: '))
 
-                sleep(2)
-                match action:
-                    case 1:
-                        attack(player, enemy)
-                    case 2:
-                        defend(player)
-                    case 3:
-                        pass
-                        # TODO: use items
-                sleep(1)
+            sleep(1)
+            match action:
+                case 1:
+                    attack(player, enemy)
+                case 2:
+                    defend(player)
+            sleep(1)
 
-            else:
-                print(f"{Colors.UNDERLINE}{enemy.name}'s Turn{Colors.END}")
-                sleep(1)
+        else:
+            print(f"{Colors.UNDERLINE}{enemy.name}'s Turn{Colors.END}")
+            sleep(1)
 
-                attack(enemy, player)
-                sleep(1)
+            attack(enemy, player)
+            sleep(1)
 
-            if enemy.hp <= 0:
-                print(f'Congratulations! You Defeated {enemy.name}!')
-                return True
+        if enemy.hp <= 0:
+            print(f'Congratulations! You Defeated {enemy.name}!')
+            return True
 
-            if player.hp <= 0:
-                print('You lost')
-                return False
+        if player.hp <= 0:
+            print('You lost')
+            return False
 
-            player_turn = not player_turn
+        player_turn = not player_turn
 
-# TODO: shop menu
-# TODO: map zones
+
+def attack(attacker: Player | Enemy, defender: Player | Enemy):
+    crit_roll = randint(1, 100)
+
+    do_crit = True if attacker.crit_rate >= crit_roll else False
+
+    # TODO: adjust sleeps for time spacing *
+
+    damage_dealt = (attacker.atk * ((attacker.crit_damage/100) + 1)) if do_crit \
+        else attacker.atk - (defender.defense * 0.5)
+
+    # TODO: better relay of information *
+
+    # checks if defender is defending
+    if defender.is_defending:
+        print(f'{defender.name} blocked!')
+        sleep(1.5)
+
+        # reduces damage by half
+        damage_dealt *= 0.5
+
+        if do_crit:
+            print(f'{attacker.name} landed a critical strike!\n')
+            sleep(0.5)
+
+        # checks for no damage dealt
+        if damage_dealt <= 0:
+            print(f"{attacker.name}'s attack did no damage!\n")
+
+        else:
+            defender.hp = defender.hp - damage_dealt
+            if defender.hp < 0: defender.hp = 0  # checks if defender hp is lower than 0 and corrects it
+
+            # prints out information
+            print(f'{defender.name} blocked for {attacker.atk - damage_dealt} damage ')
+            sleep(1)
+            print(f'{defender.name} took {damage_dealt} damage instead!')
+            sleep(1)
+            print(f'{defender.name} has {defender.hp} HP remaining!\n')
+
+        defender.is_defending = False
+
+    else:  # not defending
+        if do_crit:
+            print(f'{attacker.name} landed a critical strike!\n')
+            sleep(0.5)
+
+        if damage_dealt <= 0:
+            print(f"{defender.name}'s defense was too strong! ", end='')
+            sleep(1.5)
+            print(f"{attacker.name}'s attack did nothing!\n")
+
+        else:
+            defender.hp = defender.hp - damage_dealt
+            if defender.hp < 0: defender.hp = 0
+
+            print(f'{attacker.name} landed a hit that did {damage_dealt} damage! ', end='')
+            sleep(1.5)
+            print(f'{defender.name} has {defender.hp} HP remaining!\n')
+
+
+def defend(defender: Player):
+    print(f'{defender.name} is going to block!\n')
+
+    defender.is_defending = True
+
+
+# TODO: use item in combat ***
+def use_items():
+    pass
+
+# TODO: run combat feature **

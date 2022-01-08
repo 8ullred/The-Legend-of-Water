@@ -1,4 +1,5 @@
 """
+¥
 Text Based RPG Thing
 Ronald + Bill
 """
@@ -6,6 +7,71 @@ Ronald + Bill
 import os
 from characters import *
 from actions import *
+from constants import ENEMY_TYPES
+
+
+def intro():
+    # TODO: finish tutorial ****
+    # TODO: add sleeps for time spacing **
+
+    # tutorial to game
+    # TODO: Error Trapping ***
+    while True:
+        reading_speed = None
+
+        match input('Would you like to speed up the intro (y/n)? '):
+            case 'y' | 'Y':
+                reading_speed = 0.01
+            case 'n' | 'N':
+                reading_speed = 0.08
+            case '¥':
+                reading_speed = 0
+            case _:
+                print('Invalid Input - Please Retry\n')
+
+        if reading_speed is not None:
+            break
+
+    print('\n' * 10)
+    sleep(1)
+    read_story('startIntro', 'Introduction: ', reading_speed)
+
+    return reading_speed
+
+
+def tutorial(reading_speed: float, player: Player):
+    print()
+    print_bracket(1)
+
+    read_story('startBattle1', reading_rate=reading_speed)
+    print('\n')
+
+    while True:
+        reeco = Enemy('Reeco', ENEMY_TYPES['tutorial1'])
+        if start_fight(player, reeco, True):
+            break
+
+    read_story('endBattle1', reading_rate=reading_speed, player=player)
+
+    print()
+    print_bracket(2)
+
+    read_story('startBattle2', reading_rate=reading_speed)
+    print('\n')
+
+    while True:
+        kasra = Enemy('Kasra', ENEMY_TYPES['tutorial2'])
+        if start_fight(player, kasra, True):
+            break
+
+    read_story('endBattle2', reading_rate=reading_speed)
+    print('\n')
+
+    read_story('conclusion', reading_rate=reading_speed, player=player)
+
+    print('\n')
+    print(f'Welcome to {Colors.WATER}The Legend of Water{Colors.END}')
+    player.__heal__()
 
 
 def main():
@@ -18,74 +84,63 @@ def main():
 
     print('\n' * 0)
 
-    # TODO: add save functionality
-    # looks for a save file
+    # TODO: add save functionality *
+    # TODO: fix save system **
+
+    # gets all save files
     save_files = os.listdir('saves')
+    # TODO: load stats ***
 
-    # checks if there's a save file
-    if save_files:
-        # TODO: have all saves files be printed
+    while True:
         print('Saves: ')
-        # [print(f'{i+1}. {save}') for i, save in enumerate(save_files)]
-        #
-        # print()
-        # # TODO: Error Trapping
-        # # TODO: allow selection of save file
-        # selection = int(input('Select save file: '))
-        #
-        # # TODo: open save file and load stats
-        # with open(save_files[selection - 1], 'r') as save:
-        #     player = pk.load(save)
-        #
-        # print('Welcome Back!')
+        for i, file in enumerate(save_files):
+            print(f'\t{i + 1} {file.strip(".txt")}')
+        try:
+            selection = int(input('Choose Save: '))
 
-    else:
-        # TODO: add sleeps for time spacing
-        # TODO: finish tutorial
+            if selection > 3 or selection < 1:
+                print('Invalid Selection - Please Retry')
+            else:
+                current_save = save_files[selection-1]
 
-        # tutorial to game
-        # TODO: Error Trapping
-        while True:
-            do_speedup = input('Would you like to speed up the intro (y/n)? ')
+                if current_save == 'Empty Save 1.txt' \
+                        or current_save == 'Empty Save 2.txt' \
+                        or current_save == 'Empty Save 3.txt':
+                    print('creating new')
+                    new_save = True
 
-            match do_speedup:
-                case 'y' | 'Y':
-                    reading_speed = 0.01
-                case 'n' | 'N':
-                    reading_speed = 0.08
-                case '¥':
-                    reading_speed = 0
-                case _:
-                    print('Invalid Input - Please Retry\n')
-                    continue
+                else:
+                    print('using old')
+                    new_save = False
+                    with open(f'saves/{current_save}', 'r'):
+                        player = Player(current_save.strip('.txt'))
 
-            print('\n' * 10)
-            sleep(1)
-            read_story('startIntro', 'Introduction: ', reading_speed)
-
-            break
-
-        # TODO: Error Trapping (no longer than 20 chars)
-        player = Player(input(' '))
-
-        print()
-        print_bracket(1)
-
-        read_story('startBattle1')
-        print('\n')
-
-        # TODO: tutorial fights
-        while True:
-            reeco = Enemy('Reeco')
-            if start_fight(player, reeco, True):
                 break
 
-        read_story('endBattle1', player=player)
+        except ValueError:
+            print('Invalid Input - Please Retry')
 
-        # print()
-        # print('Welcome to The Legend of Water')
+    # checks if a new save has been created
+    if new_save:
+        reading_speed = intro()
 
-    # menu(player)
+        player = Player(input(' '))
+        while True:
+
+            if 21 > len(player.name) > 2:
+                break
+            elif len(player.name) < 3:
+                print(f'Player name too short: {len(player.name)} < 3')
+            else:
+                print(f'Player name too long: {len(player.name)} > 20')
+
+            player = Player(input('Enter Name: '))
+
+        tutorial(reading_speed, player)
+    else:
+        print('Welcome Back!')
+
+    menu(player, current_save)
 
 
 if __name__ == '__main__':

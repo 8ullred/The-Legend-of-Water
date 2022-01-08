@@ -1,83 +1,11 @@
-from time import sleep
-from characters import Player
 from constants import Colors
 
 
-class NoPlayerName(NameError):
-    pass
-
-
-def read_story(scene: str, header: str = None, reading_rate: float = 0.08, player: Player = None):
-    start_reading = False
-
-    if header is not None:
-        for char in header:
-            print(char, end='')
-            sleep(reading_rate * 8) if char == ':' else sleep(reading_rate)
-
-        else:
+def color_table():
+    for i in range(256):
+        if i % 16 == 0:
             print()
-
-    try:
-        with open('lore.txt', 'r') as file:
-            for line in file:
-                if line != '\n':
-                    line = line.strip('\n')
-
-                if start_reading:
-                    if line == '--end':
-                        return
-                    elif line == '--lineBreak':
-                        print()
-                    else:
-                        check_for_code, pattern_matched = False, False
-
-                        for char in line:
-                            match char:
-                                case ',' | '.':
-                                    sleep_time = reading_rate * 8
-                                case ':':
-                                    sleep_time = reading_rate * 20
-                                case '–':
-                                    check_for_code = True
-                                    continue
-                                case _:
-                                    sleep_time = reading_rate
-
-                            if check_for_code:
-                                match char:
-                                    case '1':
-                                        char = Colors.COMMON
-                                    case '2':
-                                        char = Colors.UNCOMMON
-                                    case '3':
-                                        char = Colors.RARE
-                                    case '4':
-                                        char = Colors.EPIC
-                                    case '5':
-                                        char = Colors.LEGENDARY_B
-                                    case 'W':
-                                        char = Colors.WATER
-                                    case 'E':
-                                        char = Colors.END
-                                    case 'P':
-                                        if player is None:
-                                            raise NoPlayerName
-                                        else:
-                                            char = player.name
-
-                                sleep_time, check_for_code = 0, False
-
-                            print(char, end='')
-                            sleep(sleep_time)
-
-                else:
-                    if line.split() == ['--scene:', scene]:
-                        start_reading = True
-        print('No Scene Found')
-
-    except NoPlayerName:
-        print('No Player Was Passed - This Scene Requires the Name of a Player')
+        print(f'\t\u001b[38;5;{i}m{i}\033[0m', end='')
 
 
 def print_bracket(stage: int):
@@ -112,7 +40,7 @@ def print_bracket(stage: int):
                   f'{Colors.STRIKE}Felix{Colors.END} ----|          |          |\n'
                   '                     X----------|\n'
                   f'{Colors.STRIKE}Carol{Colors.END} ----|          |\n'
-                  '          Felix -----|\n'
+                  '          Bebald ----|\n'
                   '----------|')
         case 3:
             print('----------|\n'
@@ -130,3 +58,46 @@ def print_bracket(stage: int):
                   f'{Colors.STRIKE}Carol{Colors.END} ----|          |\n'
                   '          X----------|\n'
                   '----------|')
+
+
+def list_menu(selections: list, title: str) -> str:
+    selections = [selections[i:i+6] for i in range(0, len(selections), 6)]
+
+    current_page = 1
+
+    while True:
+        print(f'\n{title}: ')
+
+        [print(f'\t{Colors.fill(Colors.OPTION, i + 1)} {item}') for i, item in enumerate(selections[current_page - 1])]
+        [print() for _ in range(6 - len(selections[current_page-1]))]
+
+        print(f"{Colors.fill(Colors.OPTION, '<')} Back "
+              f"| {Colors.fill(Colors.OPTION, 'Page')} {Colors.fill(Colors.OPTION, current_page)} of {len(selections)} "
+              f"| Next {Colors.fill(Colors.OPTION, '>')}")
+
+        selection = [char for char in input('Enter Selection: ')]
+
+        try:
+            match selection:
+                case ['<']:
+                    current_page -= 1 if current_page > 1 else 0
+                case ['>']:
+                    current_page += 1 if current_page < len(selections) else 0
+                case ['P' | 'p', page] | ['P' | 'p', 'A' | 'a', 'G' | 'g', 'E' | 'e', page] | \
+                     ['P' | 'p', ' ', page] | ['P' | 'p', 'A' | 'a', 'G' | 'g', 'E' | 'e', ' ', page]:
+                    page = int(page)
+                    if len(selections) >= page > 0:
+                        current_page = page
+                    else:
+                        print(f'Page {page} Found - Please Retry')
+                case [item]:
+                    item = int(item)
+                    if len(selections[item]) >= item > 0:
+                        return selections[current_page-1][item-1]
+                    else:
+                        print('Invalid Selection - Please Retry')
+                case _:
+                    print('Invalid Input - Please Retry')
+
+        except ValueError:
+            print('Invalid Input - Please Retry')
