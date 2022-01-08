@@ -1,3 +1,5 @@
+from os import listdir
+
 from constants import Colors
 
 
@@ -6,6 +8,54 @@ def color_table():
         if i % 16 == 0:
             print()
         print(f'\t\u001b[38;5;{i}m{i}\033[0m', end='')
+
+
+def get_username() -> str:
+
+    name = input(' ')
+
+    while True:
+        if 21 > len(name) > 2:
+            return name
+        elif len(name) < 3:
+            print(f'Player name too short: {len(name)} < 3')
+        else:
+            print(f'Player name too long: {len(name)} > 20')
+
+        name = input('Enter Name: ')
+
+
+def get_saves() -> tuple[str, bool]:
+    # TODO: add save functionality *
+    # TODO: fix save system **
+
+    # gets all save files
+    save_files = listdir('saves')
+    # TODO: load stats ***
+
+    while True:
+        print('Saves: ')
+        for i, file in enumerate(save_files):
+            print(f'\t{i + 1} {file.strip(".txt")}')
+
+        try:
+            selection = int(input('Choose Save: '))
+
+            if 4 > selection > 0:
+                save = save_files[selection - 1]
+
+                match save.split():
+                    case ['Empty', 'Save', '1.txt' | '2.txt' | '3.txt']:
+                        is_new_save = True
+                    case _:
+                        is_new_save = False
+                return save, is_new_save
+
+            else:
+                print('Invalid Selection - Please Retry')
+
+        except ValueError:
+            print('Invalid Input - Please Retry')
 
 
 def print_bracket(stage: int):
@@ -89,7 +139,7 @@ def list_menu(selections: list, title: str) -> str:
                     if len(selections) >= page > 0:
                         current_page = page
                     else:
-                        print(f'Page {page} Found - Please Retry')
+                        print(f'Page {page} Not Found - Please Retry')
                 case [item]:
                     item = int(item)
                     if len(selections[item]) >= item > 0:

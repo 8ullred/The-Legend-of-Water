@@ -1,7 +1,9 @@
+from os import rename
 from random import getrandbits, randint
 from time import sleep
-from constants import Colors
-from os import rename
+
+from constants import Colors, ENEMY_TYPES
+from actions import print_bracket, get_username
 
 
 # TODO: finish player class ***
@@ -59,6 +61,73 @@ class NoPlayerName(Exception):
     pass
 
 
+def intro():
+    # TODO: add sleeps for time spacing **
+
+    # tutorial to game
+    # TODO: Error Trapping ***
+    while True:
+        reading_speed = None
+
+        match input('Would you like to speed up the intro (y/n)? '):
+            case 'y' | 'Y':
+                reading_speed = 0.01
+            case 'n' | 'N':
+                reading_speed = 0.08
+            case '¥':
+                reading_speed = 0
+            case _:
+                print('Invalid Input - Please Retry\n')
+
+        if reading_speed is not None:
+            break
+
+    print('\n' * 10)
+    sleep(1)
+    read_story('startIntro', 'Introduction: ', reading_speed)
+
+    return reading_speed
+
+
+def tutorial(reading_speed: int | float) -> Player:
+    player = Player(get_username())
+
+    print()
+    print_bracket(1)
+
+    read_story('startBattle1', reading_rate=reading_speed)
+    print('\n')
+
+    while True:
+        reeco = Enemy('Reeco', ENEMY_TYPES['tutorial1'])
+        if start_fight(player, reeco, True):
+            break
+
+    read_story('endBattle1', reading_rate=reading_speed, player=player)
+
+    print()
+    print_bracket(2)
+
+    read_story('startBattle2', reading_rate=reading_speed)
+    print('\n')
+
+    while True:
+        kasra = Enemy('Kasra', ENEMY_TYPES['tutorial2'])
+        if start_fight(player, kasra, True):
+            break
+
+    read_story('endBattle2', reading_rate=reading_speed)
+    print('\n')
+
+    read_story('conclusion', reading_rate=reading_speed, player=player)
+
+    print('\n')
+    print(f'Welcome to {Colors.WATER}The Legend of Water{Colors.END}')
+    player.__heal__()
+
+    return player
+
+
 def read_story(scene: str, header: str = None, reading_rate: float = 0.08, player: Player = None):
     start_reading = False
 
@@ -66,10 +135,8 @@ def read_story(scene: str, header: str = None, reading_rate: float = 0.08, playe
         for char in header:
             print(char, end='')
             sleep(reading_rate * 8) if char == ':' else sleep(reading_rate)
-
         else:
             print()
-
     try:
         with open('lore.txt', 'r') as file:
             for line in file:
@@ -136,11 +203,11 @@ def menu(player: Player, save: str):
     print(f'You are currently in {player.location}')
 
     while True:
-        print(f'{Colors.fill(Colors.OPTION, "1")} - Map\n'
-              f'{Colors.fill(Colors.OPTION, "2")} - Town\n'
-              f'{Colors.fill(Colors.OPTION, "3")} - Stats\n'
-              f'{Colors.fill(Colors.OPTION, "4")} - Bag\n'
-              f'{Colors.fill(Colors.OPTION, "5")} - Save\n'
+        print(f'{Colors.fill(Colors.OPTION, 1)} - Map\n'
+              f'{Colors.fill(Colors.OPTION, 2)} - Town\n'
+              f'{Colors.fill(Colors.OPTION, 3)} - Stats\n'
+              f'{Colors.fill(Colors.OPTION, 4)} - Bag\n'
+              f'{Colors.fill(Colors.OPTION, 5)} - Save\n'
               f'{Colors.fill(Colors.OPTION, "Q")} - Quit')
 
         print()
@@ -203,12 +270,6 @@ def open_bag(player: Player, *items):
 # TODO: different coloured hit for crits *
 def start_fight(player: Player, enemy: Enemy, is_tutorial: bool = False) -> bool:
 
-    def print_health():
-        print(f'You: {player.hp}/{player.max_hp} HP')
-        print(f'{enemy.name}: {enemy.hp}/{enemy.max_hp} HP')
-        print()
-        sleep(1.5)
-
     print(f'Starting fight between {player.name} and {enemy.name}\n')
     sleep(0.5)
 
@@ -234,7 +295,7 @@ def start_fight(player: Player, enemy: Enemy, is_tutorial: bool = False) -> bool
 
     while True:
         if player_turn:
-            print_health()
+            print_health(player, enemy)
 
             print(f'{Colors.UNDERLINE}Your Turn{Colors.END}')
             sleep(0.65)
@@ -293,6 +354,13 @@ def start_fight(player: Player, enemy: Enemy, is_tutorial: bool = False) -> bool
         player_turn = not player_turn
 
 
+def print_health(player: Player, enemy: Enemy):
+    print(f'You: {player.hp}/{player.max_hp} HP')
+    print(f'{enemy.name}: {enemy.hp}/{enemy.max_hp} HP')
+    print()
+    sleep(1.5)
+
+
 def attack(attacker: Player | Enemy, defender: Player | Enemy):
     crit_roll = randint(1, 100)
 
@@ -300,7 +368,7 @@ def attack(attacker: Player | Enemy, defender: Player | Enemy):
 
     # TODO: adjust sleeps for time spacing *
 
-    damage_dealt = (attacker.atk * ((attacker.crit_damage/100) + 1)) if do_crit \
+    damage_dealt = (attacker.atk * ((attacker.crit_damage / 100) + 1)) if do_crit \
         else attacker.atk - (defender.defense * 0.5)
 
     # TODO: better relay of information *

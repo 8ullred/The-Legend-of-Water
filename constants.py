@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Final
 
 
@@ -24,8 +26,8 @@ class Colors:
     END: Final = '\033[0m'
 
     @staticmethod
-    def fill(color, val: str | int) -> str:
-        return f'{color}{str(val)}\033[0m'
+    def fill(color: 'Colors', text: str | int) -> str:
+        return f'{color}{str(text)}\033[0m'
 
 
 class Items:
