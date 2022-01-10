@@ -110,9 +110,10 @@ def print_bracket(stage: int):
                   '----------|')
 
 
-def list_menu(selections: list, title: str) -> str:
+def display_menu(selections: list, title: str) -> str:
     selections = [selections[i:i+6] for i in range(0, len(selections), 6)]
 
+    pages = len(selections)
     current_page = 1
 
     while True:
@@ -122,32 +123,50 @@ def list_menu(selections: list, title: str) -> str:
         [print() for _ in range(6 - len(selections[current_page-1]))]
 
         print(f"{Colors.fill(Colors.OPTION, '<')} Back "
-              f"| {Colors.fill(Colors.OPTION, 'Page')} {Colors.fill(Colors.OPTION, current_page)} of {len(selections)} "
+              f"| {Colors.fill(Colors.OPTION, 'Page')} {Colors.fill(Colors.OPTION, current_page)} of {pages} "
               f"| Next {Colors.fill(Colors.OPTION, '>')}")
 
-        selection = [char for char in input('Enter Selection: ')]
+        selection = [char for char in input('Enter Selection (Leave Blank to Quit): ')]
 
         try:
             match selection:
                 case ['<']:
-                    current_page -= 1 if current_page > 1 else 0
+                    current_page -= 1 if current_page > 1 else 1
                 case ['>']:
-                    current_page += 1 if current_page < len(selections) else 0
-                case ['P' | 'p', page] | ['P' | 'p', 'A' | 'a', 'G' | 'g', 'E' | 'e', page] | \
-                     ['P' | 'p', ' ', page] | ['P' | 'p', 'A' | 'a', 'G' | 'g', 'E' | 'e', ' ', page]:
-                    page = int(page)
-                    if len(selections) >= page > 0:
+                    current_page += 1 if current_page < pages else pages
+                case ['<', '<']:
+                    if (current_page - int(pages / 10)) > 1:
+                        current_page -= int(pages / 10)
+                    else:
+                        current_page = 1
+                case ['>', '>']:
+                    if (current_page + int(pages / 10)) < pages:
+                        current_page += int(pages / 10)
+                    else:
+                        current_page = pages
+                case ['<', '<', '<']:
+                    current_page = 1
+                case ['>', '>', '>']:
+                    current_page = pages
+                case [('P' | 'p'), ('A' | 'a'), ('G' | 'g'), ('E' | 'e'), *page] | \
+                     [('P' | 'p'), ('A' | 'a'), ('G' | 'g'), ('E' | 'e'), ' ', *page] | \
+                     [('P' | 'p'), ('G' | 'g'), *page] | [('P' | 'p'), ('G' | 'g'), ' ', *page] | \
+                     [('P' | 'p'), *page] | [('P' | 'p'), ' ', *page]:
+                    page = int(''.join(page))
+                    if pages >= page > 0:
                         current_page = page
                     else:
                         print(f'Page {page} Not Found - Please Retry')
                 case [item]:
                     item = int(item)
-                    if len(selections[item]) >= item > 0:
+                    if len(selections[current_page-1]) >= item > 0:
                         return selections[current_page-1][item-1]
                     else:
                         print('Invalid Selection - Please Retry')
+                case []:
+                    return ''
                 case _:
                     print('Invalid Input - Please Retry')
 
         except ValueError:
-            print('Invalid Input - Please Retry')
+            print('Invalid Input Error- Please Retry')

@@ -6,6 +6,10 @@ Ronald + Bill
 from actions import *
 from characters import *
 
+"""
+TODO: 
+"""
+
 
 def main():
     version = '0.1.2'
@@ -23,6 +27,8 @@ def main():
 
         player = tutorial(reading_speed)
     else:
+        player = Player(current_save)
+
         print('Welcome Back!')
 
     menu(player, current_save)

@@ -2,23 +2,26 @@ from os import rename
 from random import getrandbits, randint
 from time import sleep
 
-from constants import Colors, ENEMY_TYPES
-from actions import print_bracket, get_username
+from constants import Colors, ENEMY_TYPES, Items
+from actions import print_bracket, get_username, display_menu
 
 
 # TODO: finish player class ***
 class Player:
-    def __init__(self, name: str):
+    def __init__(self, name: str, stats: list[int, int, int, int, int, int, int] | None = None):
         self.name = name
 
-        # setting base stats for player
-        self.atk = 999.0
-        self.max_hp = 20.0
-        self.hp = self.max_hp
-        self.defense = 0
-        self.crit_rate = 5
-        self.crit_damage = 50
-        self.speed = 5
+        if stats is None:
+            # setting base stats for player
+            self.max_hp = 15
+            self.hp = self.max_hp
+            self.defense = 0
+            self.atk = 2
+            self.crit_rate = 5
+            self.crit_damage = 50
+            self.speed = 100  # scale by ~5
+        else:
+            self.atk, self.max_up, self.hp, self.defense, self.crit_rate, self.crit_damage, self.speed = stats
 
         # setting statuses for player
         self.is_defending = False
@@ -27,16 +30,47 @@ class Player:
         # setting player balance
         self.gold, self.primoshard = 0, 0
 
+        # players items, stored in form of 'item_name': ('amount', 'type')
+        self.items = {"Dev's Scythe": (1, 'weapon'), "Star-Woven Cloak": (1, 'armor')}
+
     def balance(self):
         return ('gold', self.gold), ('primoshard', self.primoshard)
 
-    def get_stats(self) -> tuple[float, tuple[float, float], int, int, int, int]:
-        return self.atk, (self.hp, self.max_hp), self.defense, self.crit_rate, self.crit_damage, self.speed
+    def stats(self):
+        # TODO: display all stats **
+        # TODO: show current hp *
+        print('Stats:')
 
-    def __heal__(self):
+        print(f'\t{Colors.fill(Colors.HP, f"{self.hp}/{self.max_hp}❤ HP")}\n'
+              f'\t{Colors.fill(Colors.DEF, f"{self.defense}✥ DEF")} \n'
+              f'\t{Colors.fill(Colors.ATK, f"{self.atk}⚔ ATK")}\n'
+              f'\t{Colors.fill(Colors.CRIT, f"{self.crit_rate}☣ CR")}\n'
+              f'\t{Colors.fill(Colors.CRIT, f"{self.crit_damage}☠ CD")}\n'
+              f'\t{self.speed}✦ SPD\n')
+        _ = input('Hit enter to return to the previous menu.')
+        return
+
+    def inventory(self):
+        while True:
+
+            selection = display_menu(list(self.items.keys()), 'Items')
+
+            if selection == '':
+                return
+            print_description(selection, self)
+
+            _ = input('Hit enter to return to the previous menu')
+
+    def __update_items__(self, values: list[tuple[str, int]]):
+        for i, v in values:
+            if i in self.items:
+                self.items[i] += v
+            else:
+                self.items[i] = v
+
+    def heal(self):
         self.hp = self.max_hp
     # TODO: add item equipping **
-    # TODO: add inventory *
 
 
 # TODO: Enemy class ***
@@ -48,9 +82,9 @@ class Enemy:
         self.hp = self.max_hp
         self.atk = enemy['atk']
         self.defense = enemy['defense']
-        self.speed = enemy['speed']
         self.crit_rate = enemy['crit_rate']
         self.crit_damage = enemy['crit_damage']
+        self.speed = enemy['speed']
 
         self.is_defending = False
 
@@ -61,6 +95,7 @@ class NoPlayerName(Exception):
     pass
 
 
+# intro, tutorial, read bundle up
 def intro():
     # TODO: add sleeps for time spacing **
 
@@ -123,7 +158,11 @@ def tutorial(reading_speed: int | float) -> Player:
 
     print('\n')
     print(f'Welcome to {Colors.WATER}The Legend of Water{Colors.END}')
-    player.__heal__()
+    player.heal()
+    player.__update_items__([('Bronze Sword', 1), ('Filtered Water', 1),
+                             ('Holy Water', 1), ('Childhood Photo', 1)])
+    player.gold += 50
+    player.primoshard += 100
 
     return player
 
@@ -220,9 +259,9 @@ def menu(player: Player, save: str):
             case '2':
                 pass
             case '3':
-                open_stats(player)
+                player.stats()
             case '4':
-                open_bag(player)
+                player.inventory()
             case '5':
                 rename(f'saves/{save}', f'saves/{player.name}.txt')
             case 'q':
@@ -231,48 +270,51 @@ def menu(player: Player, save: str):
                 print('Your Progress Has Been Saved.')
 
                 return
-            case 'dev':
-                pass
             case _:
                 print('Invalid Command - Please Retry')
 
+
+def print_description(item: str, player: Player):
+    if item != '':
+        match player.items[item][1]:
+            case 'weapon':
+                item_name, selection = item, Items.WEAPONS[item]
+
+                print(f'{Colors.fill(selection["rarity"], item_name)} - {selection["type"].title()}\n')
+
+                print(f'ATK: {selection["atk"]}\n'
+                      f'HP: {selection["hp"]}\n'
+                      f'CD: {selection["cd"]}\n'
+                      f'CR: {selection["cr"]}\n'
+                      f'SPD: {selection["spd"]}\n')
+
+                print(f'Description: {selection["description"]}')
+
+            case 'armor':
+                selection = item, Items.ARMOR[item]
+
+                print(f'{selection[1]["type"].title()} - {selection[0].title()}\n')
+            case 'consumable':
+                selection = item, Items.CONSUMABLE[item]
+
+                print(f'{selection[1]["type"].title()} - {selection[0].title()}\n')
+            case _:
+                selection = item, Items.OTHER[item]
+
+                print(f'{selection[1]["type"].title()} - {selection[0].title()}\n')
 
 # TODO: map zones ****
 
 # TODO: shop menu ***
 
 
-def open_stats(player: Player):
-    print('Stats:')
-    # TODO: display all stats **
-    for item in player.get_stats():
-        # TODO: show current hp *
-        print(f'\t{item = }')
-
-    print()
-    _ = input('Hit enter to return to the previous menu.')
-    return
-
-
-def open_bag(player: Player, *items):
-    print('Balance:\n')
-    [print(f'\t{item[0]}: {val}\n') for item, val in player.balance()]
-
-    print('\nItems: ')
-    print('\t', *items)
-
-    print()
-    _ = input('Hit enter to return to the previous menu.')
-    return
-
-
 # TODO: combat mechanics ***
 # TODO: different coloured hit for crits *
 def start_fight(player: Player, enemy: Enemy, is_tutorial: bool = False) -> bool:
-
     print(f'Starting fight between {player.name} and {enemy.name}\n')
     sleep(0.5)
 
+    # TODO: implement new speed mechanic
     if player.speed > enemy.speed:
         print(f"You go first! Your speed is {player.speed}, is faster than {enemy.name}'s speed of {enemy.speed}")
         player_turn = True
@@ -307,7 +349,6 @@ def start_fight(player: Player, enemy: Enemy, is_tutorial: bool = False) -> bool
                           f'\t{Colors.OPTION}2{Colors.END} Defend')
                     sleep(0.5)
 
-                    # TODO: Error Trapping
                     try:
                         action = int(input('Enter action: '))
                         if action not in [1, 2]:
