@@ -14,8 +14,8 @@ class Colors:
 
     # extra colours
     HP: Final = '\u001b[38;5;1m'
-    DEF: Final = '\u001b[38;5;47m'
-    ATK: Final = '\u001b[38;5;227m'
+    DEF: Final = '\u001b[38;5;10m'
+    ATK: Final = '\u001b[38;5;11m'
     CRIT: Final = '\u001b[38;5;32m'
     OPTION: Final = '\u001b[38;5;81m'
     GREEN: Final = '\u001b[38;5;40;1m'
@@ -92,6 +92,7 @@ class Items:
                              "atk": 0, "hp": 99999, "def": 99999, "cd": 0, "cr": 0, "spd": 99999, "type": "armor"},
     }
 
+    # TODO: add rarities for consumables
     # normal items 'name': ('description', 'rarity', 'effect', 'amount', 'type'
     CONSUMABLE: Final = {
         "Filtered Water": {"Water that tastes the same as Tap Water, but is slightly healthier.", 2,
@@ -106,10 +107,10 @@ class Items:
 
 # TODO: functional enemy types ***
 ENEMY_TYPES: Final = {
-    'tutorial1': {'max_hp': 10, 'atk': 1, 'defense': 0,
+    'tutorial1': {'max_hp': 5, 'atk': 1, 'defense': 0,
                   'speed': 100, 'crit_rate': 0, 'crit_damage': 0},
 
-    'tutorial2': {'max_hp': 20, 'atk': 3, 'defense': 1,
+    'tutorial2': {'max_hp': 10, 'atk': 3, 'defense': 1,
                   'speed': 100, 'crit_rate': 5, 'crit_damage': 20},
 
     'dummy': {'max_hp': 2 ** 100, 'atk': 0, 'defense': 0,

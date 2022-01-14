@@ -1,4 +1,5 @@
-from os import listdir
+from os import listdir, rename
+import pickle as pk
 
 from constants import Colors
 
@@ -25,7 +26,7 @@ def get_username() -> str:
         name = input('Enter Name: ')
 
 
-def get_saves() -> tuple[str, bool]:
+def load_save() -> tuple[str, any]:
     # TODO: add save functionality *
     # TODO: fix save system **
 
@@ -42,20 +43,26 @@ def get_saves() -> tuple[str, bool]:
             selection = int(input('Choose Save: '))
 
             if 4 > selection > 0:
-                save = save_files[selection - 1]
+                selected_save = save_files[selection - 1]
+                try:
+                    with open(f'saves/{selected_save}', 'rb') as save_file:
+                        player = pk.load(save_file)
+                except EOFError:
+                    player = None
 
-                match save.split():
-                    case ['Empty', 'Save', '1.txt' | '2.txt' | '3.txt']:
-                        is_new_save = True
-                    case _:
-                        is_new_save = False
-                return save, is_new_save
-
+                return selected_save, player
             else:
                 print('Invalid Selection - Please Retry')
 
         except ValueError:
             print('Invalid Input - Please Retry')
+
+
+def save(file_name, player):
+    with open(f'saves/{file_name}', 'wb') as save_file:
+        pk.dump(player, save_file)
+
+    rename(f'saves/{file_name}', f'saves/{player.name}.txt')
 
 
 def print_bracket(stage: int):
@@ -131,9 +138,9 @@ def display_menu(selections: list, title: str) -> str:
         try:
             match selection:
                 case ['<']:
-                    current_page -= 1 if current_page > 1 else 1
+                    current_page -= 1 if current_page > 1 else 0
                 case ['>']:
-                    current_page += 1 if current_page < pages else pages
+                    current_page += 1 if current_page < pages else 0
                 case ['<', '<']:
                     if (current_page - int(pages / 10)) > 1:
                         current_page -= int(pages / 10)

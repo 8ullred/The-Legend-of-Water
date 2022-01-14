@@ -3,50 +3,51 @@ from random import getrandbits, randint
 from time import sleep
 
 from constants import Colors, ENEMY_TYPES, Items
-from actions import print_bracket, get_username, display_menu
+from actions import print_bracket, get_username, display_menu, save
 
 
 # TODO: finish player class ***
 class Player:
-    def __init__(self, name: str, stats: list[int, int, int, int, int, int, int] | None = None):
+    def __init__(self, name: str):
         self.name = name
 
-        if stats is None:
-            # setting base stats for player
-            self.max_hp = 15
-            self.hp = self.max_hp
-            self.defense = 0
-            self.atk = 2
-            self.crit_rate = 5
-            self.crit_damage = 50
-            self.speed = 100  # scale by ~5
-        else:
-            self.atk, self.max_up, self.hp, self.defense, self.crit_rate, self.crit_damage, self.speed = stats
-
-        # setting statuses for player
-        self.is_defending = False
-        self.location = 'Dorma'
+        # setting stats for player
+        self.max_hp = 15
+        self.hp = self.max_hp
+        self.defense = 0
+        self.atk = 999
+        self.crit_rate = 5
+        self.crit_damage = 50
+        self.speed = 100  # scale by ~5
 
         # setting player balance
         self.gold, self.primoshard = 0, 0
 
+        # setting player location
+        self.location = 'Dorma'
+
+        # setting statuses for player
+        self.is_defending = False
+
         # players items, stored in form of 'item_name': ('amount', 'type')
         self.items = {"Dev's Scythe": (1, 'weapon'), "Star-Woven Cloak": (1, 'armor')}
+
+    def equip(self, location, item):
+        pass
 
     def balance(self):
         return ('gold', self.gold), ('primoshard', self.primoshard)
 
     def stats(self):
-        # TODO: display all stats **
-        # TODO: show current hp *
-        print('Stats:')
-
-        print(f'\t{Colors.fill(Colors.HP, f"{self.hp}/{self.max_hp}❤ HP")}\n'
-              f'\t{Colors.fill(Colors.DEF, f"{self.defense}✥ DEF")} \n'
-              f'\t{Colors.fill(Colors.ATK, f"{self.atk}⚔ ATK")}\n'
-              f'\t{Colors.fill(Colors.CRIT, f"{self.crit_rate}☣ CR")}\n'
-              f'\t{Colors.fill(Colors.CRIT, f"{self.crit_damage}☠ CD")}\n'
-              f'\t{self.speed}✦ SPD\n')
+        # TODO: display equipped item ***
+        # TODO: improve stat formatting *
+        print(f'{Colors.fill(Colors.HP, f"{self.hp}/{self.max_hp}❤ HP")}\n'
+              '----------\n'
+              f'{Colors.fill(Colors.DEF, f"{self.defense}✥ DEF")} \n'
+              f'{Colors.fill(Colors.ATK, f"{self.atk}⚔ ATK")}\n'
+              f'{Colors.fill(Colors.CRIT, f"{self.crit_rate}☣ CR")}\n'
+              f'{Colors.fill(Colors.CRIT, f"{self.crit_damage}☠ CD")}\n'
+              f'{self.speed}✦ SPD\n')
         _ = input('Hit enter to return to the previous menu.')
         return
 
@@ -61,16 +62,17 @@ class Player:
 
             _ = input('Hit enter to return to the previous menu')
 
-    def __update_items__(self, values: list[tuple[str, int]]):
-        for i, v in values:
-            if i in self.items:
-                self.items[i] += v
+    def __update_items__(self, values: list[tuple[str, tuple[int, str]]]):
+        for item, (count, type_) in values:
+
+            if item in self.items:
+                self.items[item] += count
             else:
-                self.items[i] = v
+                self.items[item] = (count, type_)
 
     def heal(self):
         self.hp = self.max_hp
-    # TODO: add item equipping **
+    # TODO: add item equipping ****
 
 
 # TODO: Enemy class ***
@@ -159,8 +161,8 @@ def tutorial(reading_speed: int | float) -> Player:
     print('\n')
     print(f'Welcome to {Colors.WATER}The Legend of Water{Colors.END}')
     player.heal()
-    player.__update_items__([('Bronze Sword', 1), ('Filtered Water', 1),
-                             ('Holy Water', 1), ('Childhood Photo', 1)])
+    player.__update_items__([('Bronze Sword', (1, 'weapon')), ('Filtered Water', (1, 'consumable')),
+                             ('Holy Water', (1, 'consumable')), ('Childhood Photo', (1, 'special'))])
     player.gold += 50
     player.primoshard += 100
 
@@ -238,7 +240,7 @@ def read_story(scene: str, header: str = None, reading_rate: float = 0.08, playe
         print('No Player Was Passed - This Scene Requires the Name of a Player')
 
 
-def menu(player: Player, save: str):
+def menu(player: Player, current_save: str):
     print(f'You are currently in {player.location}')
 
     while True:
@@ -263,7 +265,8 @@ def menu(player: Player, save: str):
             case '4':
                 player.inventory()
             case '5':
-                rename(f'saves/{save}', f'saves/{player.name}.txt')
+                save(current_save, player)
+                print('Your Progress Has Been Saved.')
             case 'q':
                 print("Thank You For Playing!")
                 rename(f'saves/{save}', f'saves/{player.name}.txt')
@@ -278,17 +281,17 @@ def print_description(item: str, player: Player):
     if item != '':
         match player.items[item][1]:
             case 'weapon':
-                item_name, selection = item, Items.WEAPONS[item]
+                item_name, info = item, Items.WEAPONS[item]
 
-                print(f'{Colors.fill(selection["rarity"], item_name)} - {selection["type"].title()}\n')
+                print(f'\n{Colors.fill(info["rarity"], item_name)} - {info["type"].title()}\n')
 
-                print(f'ATK: {selection["atk"]}\n'
-                      f'HP: {selection["hp"]}\n'
-                      f'CD: {selection["cd"]}\n'
-                      f'CR: {selection["cr"]}\n'
-                      f'SPD: {selection["spd"]}\n')
+                print(f'{info["atk"]:+} ATK\n'
+                      f'{info["hp"]:+} Max HP\n'
+                      f'{info["cd"]:+} CD\n'
+                      f'{info["cr"]:+} CR\n'
+                      f'{info["spd"]:+} SPD\n')
 
-                print(f'Description: {selection["description"]}')
+                print(f'Description: {info["description"]}\n')
 
             case 'armor':
                 selection = item, Items.ARMOR[item]
@@ -303,10 +306,12 @@ def print_description(item: str, player: Player):
 
                 print(f'{selection[1]["type"].title()} - {selection[0].title()}\n')
 
+
 # TODO: map zones ****
 
-# TODO: shop menu ***
-
+# TODO: Town menu ***
+# TODO: shops *
+# TODO: healer **
 
 # TODO: combat mechanics ***
 # TODO: different coloured hit for crits *
@@ -410,7 +415,7 @@ def attack(attacker: Player | Enemy, defender: Player | Enemy):
     # TODO: adjust sleeps for time spacing *
 
     damage_dealt = (attacker.atk * ((attacker.crit_damage / 100) + 1)) if do_crit \
-        else attacker.atk - (defender.defense * 0.5)
+        else (attacker.atk - (defender.defense * 0.5))
 
     # TODO: better relay of information *
 
@@ -431,7 +436,7 @@ def attack(attacker: Player | Enemy, defender: Player | Enemy):
             print(f"{attacker.name}'s attack did no damage!\n")
 
         else:
-            defender.hp = defender.hp - damage_dealt
+            defender.hp -= damage_dealt
             if defender.hp < 0: defender.hp = 0  # checks if defender hp is lower than 0 and corrects it
 
             # prints out information
@@ -454,7 +459,7 @@ def attack(attacker: Player | Enemy, defender: Player | Enemy):
             print(f"{attacker.name}'s attack did nothing!\n")
 
         else:
-            defender.hp = defender.hp - damage_dealt
+            defender.hp -= damage_dealt
             if defender.hp < 0: defender.hp = 0
 
             print(f'{attacker.name} landed a hit that did {damage_dealt} damage! ', end='')

@@ -12,23 +12,21 @@ TODO:
 
 
 def main():
-    version = '0.1.2'
+    version = '0.1.3'
 
     # prints some important information about the game
     print(f'{Colors.WATER}The Legend of the Filtered Water{Colors.END} v{version}\n'
           'by: Bill & Ronald')
     sleep(2)
 
-    current_save, is_new_save = get_saves()
+    current_save, player = load_save()
 
     # checks if a new save has been created
-    if is_new_save:
+    if player is None:
         reading_speed = intro()
 
         player = tutorial(reading_speed)
     else:
-        player = Player(current_save)
-
         print('Welcome Back!')
 
     menu(player, current_save)
