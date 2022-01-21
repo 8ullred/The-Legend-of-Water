@@ -1,71 +1,48 @@
-from os import listdir, rename
-import pickle as pk
+from os import path
 
 from constants import Colors
 
 
-def color_table():
-    for i in range(256):
-        if i % 16 == 0:
-            print()
-        print(f'\t\u001b[38;5;{i}m{i}\033[0m', end='')
+def get_username(initial_prompt: str = ' ') -> str:
+    """
+    Ask user for their in-game name, requests a new name is inputted name is not within constraints.
 
+    :param initial_prompt:
+        The prompt for the first ask of the users name. Default is ' '.
+    :return:
+        Returns the requested username if accepted
+    """
 
-def get_username() -> str:
-
-    name = input(' ')
+    name = input(initial_prompt)  # ask user for name
 
     while True:
-        if 21 > len(name) > 2:
-            return name
+        # checks if username is allowed
+        if ' ' in name:
+            print('Spaces Are Not Allowed')  # tells user the name is not allowed
+        elif len(name) > 20:
+            print(f'Player name too long: {len(name)} > 20')
         elif len(name) < 3:
             print(f'Player name too short: {len(name)} < 3')
+        elif path.exists(f'saves/{name}.txt'):
+            print(f'The username [{name}] already exists')
+        elif name.replace('_', '').isalnum():  # checks if username is alphanumeric or contains an underscore
+            print('returned name')
+            return name  # returns the name
         else:
-            print(f'Player name too long: {len(name)} > 20')
+            # tells user the name has a non-alphanumeric character/underscore
+            print('Your Name Contains a Prohibited Character')
 
-        name = input('Enter Name: ')
-
-
-def load_save() -> tuple[str, any]:
-    # TODO: add save functionality *
-    # TODO: fix save system **
-
-    # gets all save files
-    save_files = listdir('saves')
-    # TODO: load stats ***
-
-    while True:
-        print('Saves: ')
-        for i, file in enumerate(save_files):
-            print(f'\t{i + 1} {file.strip(".txt")}')
-
-        try:
-            selection = int(input('Choose Save: '))
-
-            if 4 > selection > 0:
-                selected_save = save_files[selection - 1]
-                try:
-                    with open(f'saves/{selected_save}', 'rb') as save_file:
-                        player = pk.load(save_file)
-                except EOFError:
-                    player = None
-
-                return selected_save, player
-            else:
-                print('Invalid Selection - Please Retry')
-
-        except ValueError:
-            print('Invalid Input - Please Retry')
+        name = input('Enter Name: ')  # ask user for name again
 
 
-def save(file_name, player):
-    with open(f'saves/{file_name}', 'wb') as save_file:
-        pk.dump(player, save_file)
+def print_bracket(stage: int) -> None:
+    """
+    Prints the tournament bracket based on the selected stage.
 
-    rename(f'saves/{file_name}', f'saves/{player.name}.txt')
+    :param stage:
+        The state of the tournament
+    """
 
-
-def print_bracket(stage: int):
     match stage:
         case 1:
             print(f'{Colors.GREEN}You{Colors.END} ------|\n'
@@ -117,56 +94,90 @@ def print_bracket(stage: int):
                   '----------|')
 
 
-def display_menu(selections: list, title: str) -> str:
+def selection_menu(selections: list, title: str) -> str:
+    """
+    Prints a menu based on a list of selections with a title. The menu will have 6 selections on each page and the
+    user can cycle between pages. The user will also be able to make a selection by inputting the number of the
+    selection. The function will then return the selection if that selection is valid. User may enter nothing to quit
+    the menu.
+
+    :param selections:
+        The options which are listed in the menu
+    :param title:
+        The title of the menu
+    :return:
+        Returns the selection that was made or an empty string
+    """
+
+    # formats the selection into an array with a width of 6
     selections = [selections[i:i+6] for i in range(0, len(selections), 6)]
 
-    pages = len(selections)
-    current_page = 1
+    pages = len(selections)  # the number of pages in the menu
+    current_page = 1  # sets the current page
 
     while True:
         print(f'\n{title}: ')
 
+        # prints each options on the current selected page
         [print(f'\t{Colors.fill(Colors.OPTION, i + 1)} {item}') for i, item in enumerate(selections[current_page - 1])]
+        # prints empty lines is the selected page has less than 6 items
         [print() for _ in range(6 - len(selections[current_page-1]))]
 
+        # prints page selection and information
         print(f"{Colors.fill(Colors.OPTION, '<')} Back "
               f"| {Colors.fill(Colors.OPTION, 'Page')} {Colors.fill(Colors.OPTION, current_page)} of {pages} "
               f"| Next {Colors.fill(Colors.OPTION, '>')}")
 
+        # ask for a selection and parses the input
         selection = [char for char in input('Enter Selection (Leave Blank to Quit): ')]
 
         try:
+            # matches the selection to each case
             match selection:
                 case ['<']:
+                    # subtracts one from the page if the current page is greater than 1
                     current_page -= 1 if current_page > 1 else 0
                 case ['>']:
+                    # adds one to the page if the current page is less than the total number of pages
                     current_page += 1 if current_page < pages else 0
                 case ['<', '<']:
+                    # subtracts 1/10 of the total pages if the action does not result in a page number less than 1
                     if (current_page - int(pages / 10)) > 1:
                         current_page -= int(pages / 10)
                     else:
+                        # otherwise, sets the current page to 1
                         current_page = 1
                 case ['>', '>']:
+                    # adds 1/10 of the total pages if the action does not result in a page number greater than the total
+                    # number of pages
                     if (current_page + int(pages / 10)) < pages:
                         current_page += int(pages / 10)
                     else:
+                        # otherwise, sets the current page to the total number of pages
                         current_page = pages
                 case ['<', '<', '<']:
-                    current_page = 1
+                    current_page = 1  # go to the first page
                 case ['>', '>', '>']:
-                    current_page = pages
+                    current_page = pages  # go to the last page
+
+                # matches various of a page selection
                 case [('P' | 'p'), ('A' | 'a'), ('G' | 'g'), ('E' | 'e'), *page] | \
                      [('P' | 'p'), ('A' | 'a'), ('G' | 'g'), ('E' | 'e'), ' ', *page] | \
                      [('P' | 'p'), ('G' | 'g'), *page] | [('P' | 'p'), ('G' | 'g'), ' ', *page] | \
                      [('P' | 'p'), *page] | [('P' | 'p'), ' ', *page]:
-                    page = int(''.join(page))
-                    if pages >= page > 0:
+
+                    page = int(''.join(page))  # joins the page numbers then converts to an int
+
+                    if pages >= page > 0:  # checks if the page is a valid page
                         current_page = page
                     else:
                         print(f'Page {page} Not Found - Please Retry')
                 case [item]:
                     item = int(item)
+
+                    # checks if the item is a valid selection
                     if len(selections[current_page-1]) >= item > 0:
+                        # returns the name of the item based on the page and the index of where it is on that page
                         return selections[current_page-1][item-1]
                     else:
                         print('Invalid Selection - Please Retry')
@@ -175,5 +186,5 @@ def display_menu(selections: list, title: str) -> str:
                 case _:
                     print('Invalid Input - Please Retry')
 
-        except ValueError:
+        except ValueError:  # checks for a value error
             print('Invalid Input Error- Please Retry')

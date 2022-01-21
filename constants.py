@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Final
 
 
-class Colors:
+class Colors:  # class to store colors
     # rarities
     COMMON: Final = '\u001b[38;5;243m'
     UNCOMMON: Final = '\u001b[38;5;40m'
@@ -31,11 +31,21 @@ class Colors:
 
     @staticmethod
     def fill(color: 'Colors', text: str | int) -> str:
+        """
+        Formats the inputted text with the selected color and returns that text.
+        
+        :param color: 
+            The color which is used
+        :param text: 
+            The text that will get colored
+        :return: 
+            Returns the colored text
+        """
+
         return f'{color}{str(text)}{Colors.END}'
 
 
 class Items:
-    # TODO: make colored text work with items *
     # TODO: change rarity to the name color constant
 
     # TODO: add more to this, more functionality, stats, etc. *
@@ -93,7 +103,7 @@ class Items:
     }
 
     # TODO: add rarities for consumables
-    # normal items 'name': ('description', 'rarity', 'effect', 'amount', 'type'
+    # normal items 'name': ('description', 'rarity', 'effect', 'amount', 'type')
     CONSUMABLE: Final = {
         "Filtered Water": {"Water that tastes the same as Tap Water, but is slightly healthier.", 2,
                            "heal", 5, "consumable"},
@@ -106,6 +116,7 @@ class Items:
 
 
 # TODO: functional enemy types ***
+# types of enemies and their stats 'name': ('max hp', 'atk', 'def', 'spd', 'cr, 'cd')
 ENEMY_TYPES: Final = {
     'tutorial1': {'max_hp': 5, 'atk': 1, 'defense': 0,
                   'speed': 100, 'crit_rate': 0, 'crit_damage': 0},

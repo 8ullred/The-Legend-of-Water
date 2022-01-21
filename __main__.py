@@ -1,18 +1,24 @@
-"""
-¥
-Text Based RPG Thing
-Ronald + Bill
-"""
-from actions import *
 from characters import *
 
-"""
+'''
+A Text-Based RPG
+The Legend of Water
+Very unfinished but it works
+
+By: Ronald && Bill
+'''
+
+'''
 TODO: 
-"""
+'''
 
 
-def main():
-    version = '0.1.3'
+def main() -> None:
+    """
+    Main program
+    """
+
+    version = '0.1.5'
 
     # prints some important information about the game
     print(f'{Colors.WATER}The Legend of the Filtered Water{Colors.END} v{version}\n'
@@ -23,13 +29,14 @@ def main():
 
     # checks if a new save has been created
     if player is None:
-        reading_speed = intro()
+        # calls corresponding functions for the tutorial
+        reading_speed = intro('lore.txt')
 
-        player = tutorial(reading_speed)
+        player = tutorial('lore.txt', reading_speed)
     else:
         print('Welcome Back!')
 
-    menu(player, current_save)
+    menu(player, current_save)  # calls the main menu
 
 
 if __name__ == '__main__':
