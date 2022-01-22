@@ -18,7 +18,7 @@ def main() -> None:
     Main program
     """
 
-    version = '0.1.5'
+    version = '0.1.6'
 
     # prints some important information about the game
     print(f'{Colors.WATER}The Legend of the Filtered Water{Colors.END} v{version}\n'

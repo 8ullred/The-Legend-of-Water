@@ -14,7 +14,7 @@ class Player:  # defining the player class
         self.name = name
 
         # setting stats for player
-        self.max_hp = 15
+        self.max_hp = 10
         self.hp = self.max_hp
         self.defense = 0
         self.atk = 999
@@ -34,18 +34,41 @@ class Player:  # defining the player class
         # players items, stored in form of 'item_name': ('amount', 'type')
         self.items = {"Dev's Scythe": (1, 'weapon'), "Star-Woven Cloak": (1, 'armor')}
 
-    def balance(self) -> tuple[tuple[str, int], tuple[str, int]]:
+    @property
+    def gold(self) -> int:
         """
-        Returns the players balance
+        Gets or sets the player's gold count. Value cannot be lower than 0 or will raise a NotEnoughCurrency error
+        """
 
-        :return:
-            Returns the name of the currency then the amount for each currency
+        return self._gold
+
+    @gold.setter
+    def gold(self, value) -> None:
+        self._gold = value
+
+        if self._gold < 0:
+            # corrects amount then raises an error
+            self._gold -= value
+            raise NotEnoughCurrency
+
+    @property
+    def primoshard(self) -> int:
         """
-        return ('gold', self.gold), ('primoshard', self.primoshard)
+        Gets or sets the player's primoshard count. Value cannot be lower than 0 or will raise a NotEnoughCurrency error
+        """
+        return self._primoshard
+
+    @primoshard.setter
+    def primoshard(self, value):
+        self._primoshard = value
+
+        if self._primoshard < 0:
+            self._primoshard -= value
+            raise NotEnoughCurrency
 
     def stats(self) -> None:
         """
-        Prints out the players stats and equipped gear.
+        Prints out the players stats, balance and equipped gear.
         """
 
         # printing the stats for the player to view
@@ -55,7 +78,11 @@ class Player:  # defining the player class
               f'{Colors.fill(Colors.ATK, f"{self.atk}⚔ ATK")}\n'
               f'{Colors.fill(Colors.CRIT, f"{self.crit_rate}☣ CR")}\n'
               f'{Colors.fill(Colors.CRIT, f"{self.crit_damage}☠ CD")}\n'
-              f'{self.speed}✦ SPD\n')
+              f'{self.speed}✦ SPD\n'
+              '\n'
+              f'Balance: {Colors.fill(Colors.LEGENDARY, self.gold)} Gold | '
+              f'{Colors.fill(Colors.WATER, self.primoshard)} Primoshards')
+
         _ = input('Hit enter to return to the previous menu.')
         return  # leaves the function
 
@@ -105,8 +132,8 @@ class Player:  # defining the player class
 
 
 class Enemy:
-    def __init__(self, name: str, enemy: ENEMY_TYPES) -> None:
-        self.name = name
+    def __init__(self, enemy: ENEMY_TYPES) -> None:
+        self.name = enemy['name']
 
         self.max_hp = enemy['max_hp']
         self.hp = self.max_hp
@@ -120,6 +147,11 @@ class Enemy:
 
 
 class NoPlayerName(Exception):
+    # custom exception
+    pass
+
+
+class NotEnoughCurrency(Exception):
     # custom exception
     pass
 
@@ -178,7 +210,7 @@ def tutorial(story_file: str | PathLike[str], reading_speed: int | float) -> Pla
     print('\n')
 
     # creates an enemy then starts a battle
-    while not start_fight(player, Enemy('Reeco', ENEMY_TYPES['tutorial1']), True):
+    while not start_fight(player, Enemy(ENEMY_TYPES[-1]), True):
         print('You Lost! Try again.\n')
         player.heal()
 
@@ -191,7 +223,7 @@ def tutorial(story_file: str | PathLike[str], reading_speed: int | float) -> Pla
     print('\n')
 
     # creates an enemy then starts a battle
-    while not start_fight(player, Enemy('Kasra', ENEMY_TYPES['tutorial2']), True):
+    while not start_fight(player, Enemy(ENEMY_TYPES[-2]), True):
         print('You Lost! Try again.\n')
         player.heal()
 
@@ -207,8 +239,8 @@ def tutorial(story_file: str | PathLike[str], reading_speed: int | float) -> Pla
     player.heal()
     player.update_items([('Bronze Sword', (1, 'weapon')), ('Filtered Water', (1, 'consumable')),
                          ('Holy Water', (1, 'consumable')), ('Childhood Photo', (1, 'special'))])
-    player.gold += 50
-    player.primoshard += 100
+
+    player.gold, player.primoshard = 50, 100
 
     return player
 
@@ -328,8 +360,8 @@ def menu(player: Player, current_save: str | PathLike[str]) -> None:
 
     cmd = str()
     while cmd != 'q':
-        print(f'{Colors.fill(Colors.OPTION, 1)} - Map\n'
-              f'{Colors.fill(Colors.OPTION, 2)} - Town\n'
+        print(f'{Colors.fill(Colors.OPTION, 1)} - Battle\n'  # TODO: change to map
+              f'{Colors.fill(Colors.OPTION, 2)} - Heal\n'  # TODO: change to town
               f'{Colors.fill(Colors.OPTION, 3)} - Stats\n'
               f'{Colors.fill(Colors.OPTION, 4)} - Bag\n'
               f'{Colors.fill(Colors.OPTION, 5)} - Save\n'
@@ -339,9 +371,10 @@ def menu(player: Player, current_save: str | PathLike[str]) -> None:
 
         match cmd:
             case '1':
-                pass
+                random_encounter(player)
             case '2':
-                pass
+                player.heal()
+                print('You have been healed')
             case '3':
                 player.stats()
             case '4':
@@ -353,6 +386,21 @@ def menu(player: Player, current_save: str | PathLike[str]) -> None:
                 save_progress(current_save, player)
             case invalid:
                 print(f'Invalid Command [{invalid}] - Please Retry')
+
+
+def random_encounter(player: Player):
+    monster = randint(1, 3)
+
+    print(f'You found a {ENEMY_TYPES[monster]["name"]}')
+
+    enemy = Enemy(ENEMY_TYPES[monster])
+    if start_fight(player, enemy):
+        drops = randint(1, 5)
+        print(f'It dropped {drops} gold')
+        player.gold += drops
+    else:
+        print(f'You were knocked out and lost {int(player.gold / 2)} gold')
+        player.gold = int(player.gold / 2)
 
 
 def print_description(item: str, player: Player) -> None:
@@ -477,8 +525,8 @@ def start_fight(player: Player, enemy: Enemy, is_tutorial: bool = False) -> bool
                     print('Actions:\n'
                           f'\t{Colors.OPTION}1{Colors.END} Attack\n'
                           f'\t{Colors.OPTION}2{Colors.END} Defend\n'
-                          f'\t{Colors.OPTION}3{Colors.END} Use Item\n'
-                          f'\t{Colors.OPTION}4{Colors.END} Run')
+                          f'\t{Colors.OPTION}3{Colors.END} Use Item\n'  # TODO add functionality
+                          f'\t{Colors.OPTION}4{Colors.END} Run')  # TODO: add functionality
                     sleep(0.5)
 
                     try:
@@ -495,9 +543,9 @@ def start_fight(player: Player, enemy: Enemy, is_tutorial: bool = False) -> bool
                 case 2:
                     defend(player)
                 case 3:
-                    pass  # call use item function
+                    print('Feature under development')  # call use item function
                 case 4:
-                    pass  # call run function
+                    print('Feature under development')  # call run function
             sleep(1)
 
         else:

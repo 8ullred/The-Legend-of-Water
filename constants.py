@@ -116,14 +116,23 @@ class Items:
 
 
 # TODO: functional enemy types ***
-# types of enemies and their stats 'name': ('max hp', 'atk', 'def', 'spd', 'cr, 'cd')
+# types of enemies and their stats 'ID': ('name', 'max hp', 'atk', 'def', 'spd', 'cr, 'cd')
 ENEMY_TYPES: Final = {
-    'tutorial1': {'max_hp': 5, 'atk': 1, 'defense': 0,
-                  'speed': 100, 'crit_rate': 0, 'crit_damage': 0},
+    -1: {'max_hp': 3, 'atk': 1, 'defense': 0, 'speed': 100, 'crit_rate': 0, 'crit_damage': 0,
+         'name': 'Reeco'},
 
-    'tutorial2': {'max_hp': 10, 'atk': 3, 'defense': 1,
-                  'speed': 100, 'crit_rate': 5, 'crit_damage': 20},
+    -2: {'max_hp': 5, 'atk': 2, 'defense': 0, 'speed': 100, 'crit_rate': 0, 'crit_damage': 0,
+         'name': 'Kasra'},
 
-    'dummy': {'max_hp': 2 ** 100, 'atk': 0, 'defense': 0,
-              'speed': 0, 'crit_rate': 0, 'crit_damage': 0}
+    0: {'max_hp': 2 ** 100, 'atk': 0, 'defense': 0, 'speed': 0, 'crit_rate': 0, 'crit_damage': 0,
+        'name': 'dummy'},
+
+    1: {'max_hp': 4, 'atk': 1, 'defense': 0, 'speed': 95, 'crit_rate': 0, 'crit_damage': 0,
+        'name': 'Rat'},
+
+    2: {'max_hp': 6, 'atk': 1, 'defense': 1, 'speed': 90, 'crit_rate': 0, 'crit_damage': 0,
+        'name': 'Treant'},
+
+    3: {'max_hp': 2, 'atk': 2, 'defense': 0, 'speed': 105, 'crit_rate': 5, 'crit_damage': 20,
+        'name': 'Wolf'}
 }
